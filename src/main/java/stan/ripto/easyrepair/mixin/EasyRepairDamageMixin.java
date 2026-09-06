@@ -8,26 +8,35 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 
 import java.util.UUID;
 
 @Mixin(value = ToolDamageUtil.class, remap = false)
-public abstract class EasyRepairDamageMixin {
+public class EasyRepairDamageMixin {
     @Inject(
-            method = "damage",
+            method = "damage(Lslimeknights/tconstruct/library/tools/nbt/IToolStackView;ILnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lslimeknights/tconstruct/library/modifiers/ModifierId;)Z",
             at = @At("HEAD")
     )
-    private static void onDamage(IToolStackView tool, int amount, LivingEntity entity, ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-        if (!(entity instanceof ServerPlayer player)) return;
+    private static void onDamage(
+            IToolStackView tool,
+            int amount,
+            LivingEntity entity,
+            ItemStack stack,
+            ModifierId id,
+            CallbackInfoReturnable<Boolean> cir
+    ) {
+        if (!(entity instanceof ServerPlayer player) || stack == null) {
+            return;
+        }
 
         CompoundTag nbt = stack.getOrCreateTag();
 
-        UUID current = nbt.hasUUID("owner") ? nbt.getUUID("owner") : null;
         UUID holderId = player.getUUID();
 
-        if (!holderId.equals(current)) {
+        if (!nbt.hasUUID("owner") || !holderId.equals(nbt.getUUID("owner"))) {
             nbt.putUUID("owner", holderId);
         }
     }
