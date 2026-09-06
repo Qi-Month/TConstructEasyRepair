@@ -21,7 +21,7 @@ public class EasyRepairDamageMixin {
             at = @At("HEAD")
     )
     private static void onDamage(
-            IToolStackView tool,
+            IToolStackView view,
             int amount,
             LivingEntity entity,
             ItemStack stack,
